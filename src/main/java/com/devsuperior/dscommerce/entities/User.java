@@ -1,19 +1,22 @@
 package com.devsuperior.dscommerce.entities;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.*;
 
 @Entity
 @Table(name = "tb_user")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
+
     @Column(unique = true)
     private String email;
 
@@ -23,8 +26,13 @@ public class User {
 
     private String password;
 
+    @OneToMany(mappedBy = "client")
+    private List<Order> orders = new ArrayList<>();
+
     @ManyToMany
-    @JoinTable(name = "tb_user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "tb_user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     public User() {
@@ -38,9 +46,6 @@ public class User {
         this.birthDate = birthDate;
         this.password = password;
     }
-
-    @OneToMany(mappedBy = "client")
-    private List<Order> orders = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -82,8 +87,38 @@ public class User {
         this.birthDate = birthDate;
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public void setPassword(String password) {
@@ -92,6 +127,10 @@ public class User {
 
     public List<Order> getOrders() {
         return orders;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
     }
 
     public void addRole(Role role) {
@@ -110,7 +149,6 @@ public class User {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-
         User user = (User) o;
         return Objects.equals(id, user.id);
     }
