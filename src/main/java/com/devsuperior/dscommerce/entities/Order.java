@@ -20,6 +20,7 @@ public class Order {
 
     private Instant moment;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     @ManyToOne
